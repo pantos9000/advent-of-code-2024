@@ -1,4 +1,5 @@
-#[allow(dead_code)]
+use std::collections::HashMap;
+
 pub fn run(input: &str) -> i64 {
     fn get_num<const N: usize>(line: &str) -> i64 {
         line.split_whitespace()
@@ -9,27 +10,23 @@ pub fn run(input: &str) -> i64 {
             .unwrap()
     }
 
-    let mut list1: Vec<_> = input
+    let mut map: HashMap<i64, (i64, i64)> = HashMap::new();
+
+    input
         .lines()
         .map(|line| line.trim())
         .filter(|line| !line.is_empty())
         .map(get_num::<0>)
-        .collect();
-    let mut list2: Vec<_> = input
+        .for_each(|num| map.entry(num).or_default().0 += 1);
+    input
         .lines()
         .map(|line| line.trim())
         .filter(|line| !line.is_empty())
         .map(get_num::<1>)
-        .collect();
+        .for_each(|num| map.entry(num).or_default().1 += 1);
 
-    list1.sort();
-    list2.sort();
-
-    list1
-        .into_iter()
-        .zip(list2)
-        .map(|(first, second)| first - second)
-        .map(|diff| diff.abs())
+    map.into_iter()
+        .map(|(num, (count1, count2))| num * count1 * count2)
         .sum()
 }
 
@@ -38,16 +35,16 @@ mod tests {
     use super::*;
 
     const EXAMPLE: &str = r#"
-        3   4
-        4   3
-        2   5
-        1   3
-        3   9
-        3   3
+    3   4
+    4   3
+    2   5
+    1   3
+    3   9
+    3   3
     "#;
 
     #[test]
     fn test_example() {
-        assert_eq!(run(EXAMPLE), 11);
+        assert_eq!(run(EXAMPLE), 31);
     }
 }
