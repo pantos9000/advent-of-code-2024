@@ -1,25 +1,15 @@
 #[allow(dead_code)]
 pub fn run(input: &str) -> i64 {
-    fn get_num<const N: usize>(line: &str) -> i64 {
-        line.split_whitespace()
-            .filter(|x| !x.is_empty())
-            .nth(N)
-            .unwrap()
-            .parse()
-            .unwrap()
-    }
-
-    let mut list1: Vec<_> = input
-        .lines()
-        .map(|line| line.trim())
-        .filter(|line| !line.is_empty())
-        .map(get_num::<0>)
+    let mut list1: Vec<i64> = input
+        .split_whitespace()
+        .step_by(2)
+        .map(|num| num.parse().unwrap())
         .collect();
-    let mut list2: Vec<_> = input
-        .lines()
-        .map(|line| line.trim())
-        .filter(|line| !line.is_empty())
-        .map(get_num::<1>)
+    let mut list2: Vec<i64> = input
+        .split_whitespace()
+        .skip(1)
+        .step_by(2)
+        .map(|num| num.parse().unwrap())
         .collect();
 
     list1.sort();
