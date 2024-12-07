@@ -18,9 +18,8 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_part1() {
         let input = read_input();
-        assert_eq!(0, part1::run(&input));
+        assert_eq!(190604937, part1::run(&input));
     }
 }

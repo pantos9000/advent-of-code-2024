@@ -1,5 +1,53 @@
-pub fn run(input: &str) -> usize {
-    todo!()
+use chumsky::prelude::*;
+
+pub fn run(input: &str) -> i32 {
+    // MulParser::new(input).map(|mul| mul.calc()).sum()
+
+    parser()
+        .parse(input)
+        .unwrap()
+        .unwrap_or(Expr::Num(0))
+        .eval()
+}
+
+#[derive(Debug)]
+enum Expr {
+    Num(i32),
+    Mul(Box<Expr>, Box<Expr>),
+    Add(Box<Expr>, Box<Expr>),
+}
+
+impl Expr {
+    fn eval(&self) -> i32 {
+        match self {
+            Expr::Mul(x, y) => x.eval() * y.eval(),
+            Expr::Num(x) => *x,
+            Expr::Add(x, y) => x.eval() + y.eval(),
+        }
+    }
+}
+
+fn parser() -> impl Parser<char, Option<Expr>, Error = Simple<char>> {
+    let parse_crap = any().ignored().map(|_| None);
+    let parse_int = text::int(10).map(|s: String| Expr::Num(s.parse().unwrap()));
+
+    let parse_mul = just("mul(")
+        .ignore_then(parse_int)
+        .then_ignore(just(","))
+        .then(parse_int)
+        .then_ignore(just(")"))
+        .map(|(a, b)| Some(Expr::Mul(Box::new(a), Box::new(b))));
+
+    let parse_some = parse_mul.or(parse_crap);
+
+    let fold_func = |a, b| match (a, b) {
+        (None, None) => None,
+        (Some(a), None) => Some(a),
+        (None, Some(b)) => Some(b),
+        (Some(a), Some(b)) => Some(Expr::Add(Box::new(a), Box::new(b))),
+    };
+
+    parse_some.then(parse_some.repeated()).foldl(fold_func)
 }
 
 #[cfg(test)]
@@ -12,5 +60,19 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(161, run(EXAMPLE));
+    }
+
+    #[test]
+    fn test_good() {
+        assert_eq!(44 * 46, run("mul(44,46)"));
+        assert_eq!(123 * 4, run("mul(123,4)"));
+    }
+
+    #[test]
+    fn test_bad() {
+        assert_eq!(0, run("mul(4*"));
+        assert_eq!(0, run("mul(6,9!"));
+        assert_eq!(0, run("?(12,34)"));
+        assert_eq!(0, run("mul ( 2 , 4 )"));
     }
 }
