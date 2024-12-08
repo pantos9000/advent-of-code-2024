@@ -1,8 +1,6 @@
 use chumsky::prelude::*;
 
 pub fn run(input: &str) -> i32 {
-    // MulParser::new(input).map(|mul| mul.calc()).sum()
-
     parser()
         .parse(input)
         .unwrap()
@@ -11,14 +9,14 @@ pub fn run(input: &str) -> i32 {
 }
 
 #[derive(Debug)]
-enum Expr {
+pub enum Expr {
     Num(i32),
     Mul(Box<Expr>, Box<Expr>),
     Add(Box<Expr>, Box<Expr>),
 }
 
 impl Expr {
-    fn eval(&self) -> i32 {
+    pub fn eval(&self) -> i32 {
         match self {
             Expr::Mul(x, y) => x.eval() * y.eval(),
             Expr::Num(x) => *x,
