@@ -29,11 +29,10 @@ fn parser() -> impl Parser<char, Option<Expr>, Error = Simple<char>> {
     let parse_crap = any().ignored().map(|_| None);
     let parse_int = text::int(10).map(|s: String| Expr::Num(s.parse().unwrap()));
 
-    let parse_mul = just("mul(")
-        .ignore_then(parse_int)
-        .then_ignore(just(","))
+    let parse_mul = parse_int
+        .then_ignore(just(','))
         .then(parse_int)
-        .then_ignore(just(")"))
+        .delimited_by(just("mul("), just(')'))
         .map(|(a, b)| Some(Expr::Mul(Box::new(a), Box::new(b))));
 
     let parse_some = parse_mul.or(parse_crap);
