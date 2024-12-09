@@ -1,5 +1,38 @@
+use strum::IntoEnumIterator;
+
+use crate::plane::{self, Plane};
+
 pub fn run(input: &str) -> usize {
-    todo!()
+    let plane = Plane::parse(input);
+
+    plane
+        .iter_coords()
+        .flat_map(|coords| plane::Direction::iter().map(move |direction| (coords, direction)))
+        .filter(|(coords, direction)| has_str(&plane, "XMAS", *coords, *direction))
+        .count()
+}
+
+fn has_str(
+    plane: &Plane<char>,
+    s: &str,
+    coords: plane::Coords,
+    direction: plane::Direction,
+) -> bool {
+    let mut coords = coords;
+    for c in s.chars() {
+        let Some(contained) = plane.get(coords) else {
+            return false;
+        };
+        if contained != &c {
+            return false;
+        }
+        let Some(new_coords) = coords.move_into_direction(direction) else {
+            return false;
+        };
+        coords = new_coords;
+    }
+
+    true
 }
 
 #[cfg(test)]

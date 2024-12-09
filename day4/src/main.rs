@@ -1,5 +1,6 @@
 mod part1;
 mod part2;
+mod plane;
 
 pub fn read_input() -> String {
     use std::fs;
