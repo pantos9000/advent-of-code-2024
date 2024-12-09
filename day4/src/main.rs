@@ -23,6 +23,6 @@ mod tests {
     #[ignore]
     fn test_part1() {
         let input = read_input();
-        assert_eq!(0, part1::run(&input));
+        assert_eq!(2578, part1::run(&input));
     }
 }

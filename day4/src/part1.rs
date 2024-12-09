@@ -19,17 +19,27 @@ fn has_str(
     direction: plane::Direction,
 ) -> bool {
     let mut coords = coords;
-    for c in s.chars() {
-        let Some(contained) = plane.get(coords) else {
-            return false;
-        };
-        if contained != &c {
-            return false;
-        }
+    let mut chars_iter = s.chars();
+
+    let c = chars_iter.next().unwrap();
+    let Some(contained) = plane.get(coords) else {
+        return false;
+    };
+    if *contained != c {
+        return false;
+    }
+
+    for c in chars_iter {
         let Some(new_coords) = coords.move_into_direction(direction) else {
             return false;
         };
         coords = new_coords;
+        let Some(contained) = plane.get(coords) else {
+            return false;
+        };
+        if *contained != c {
+            return false;
+        }
     }
 
     true
@@ -66,5 +76,11 @@ mod tests {
             MXMXAXMASX
         "#;
         assert_eq!(18, run(example));
+    }
+
+    #[test]
+    fn test_3() {
+        let example = "SAMX";
+        assert_eq!(1, run(example));
     }
 }
