@@ -11,7 +11,7 @@ pub fn read_input() -> String {
 
 fn main() {
     let input = read_input();
-    let result = part1::run(&input);
+    let result = part2::run(&input);
     println!("Result is {result}");
 }
 
