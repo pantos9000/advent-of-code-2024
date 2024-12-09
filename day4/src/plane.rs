@@ -34,6 +34,10 @@ where
             .enumerate()
             .flat_map(|(y, vx)| vx.iter().enumerate().map(move |(x, _)| Coords::new(x, y)))
     }
+
+    pub fn iter_entries(&self) -> impl Iterator<Item = &T> {
+        self.0.iter().flat_map(|vx| vx.iter())
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -149,5 +153,56 @@ impl Direction {
             Self::Left => Self::UpLeft,
             Self::UpLeft => Self::Up,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_size() {
+        let input = "abc\n123";
+        let plane: Plane<char> = Plane::parse(input);
+        assert_eq!(plane.width(), 3);
+        assert_eq!(plane.height(), 2);
+    }
+
+    #[test]
+    fn test_iter_coords() {
+        let input = "ab\n12";
+        let expected: Vec<Coords> =
+            vec![(0, 0).into(), (1, 0).into(), (0, 1).into(), (1, 1).into()];
+        let plane: Plane<char> = Plane::parse(input);
+        let coords: Vec<_> = plane.iter_coords().collect();
+        assert_eq!(coords, expected);
+    }
+
+    #[test]
+    fn test_iter_entries() {
+        let input = "ab\n12";
+        let expected: Vec<&char> = vec![&'a', &'b', &'1', &'2'];
+        let plane: Plane<char> = Plane::parse(input);
+        let chars: Vec<_> = plane.iter_entries().collect();
+        assert_eq!(chars, expected);
+    }
+
+    #[test]
+    fn test_get_miss() {
+        let input = "ab\n12";
+        let plane: Plane<char> = Plane::parse(input);
+        let coords_x = Coords::new(2, 0);
+        let coords_y = Coords::new(0, 2);
+        assert!(plane.get(coords_x).is_none());
+        assert!(plane.get(coords_y).is_none());
+    }
+
+    #[test]
+    fn test_get_hit() {
+        let input = "ab\n12";
+        let plane: Plane<char> = Plane::parse(input);
+        let coords_x = Coords::new(1, 0);
+        let coords_y = Coords::new(0, 1);
+        assert_eq!(plane.get(coords_x).unwrap(), &'b');
+        assert_eq!(plane.get(coords_y).unwrap(), &'1');
     }
 }
