@@ -1,18 +1,20 @@
+use std::cmp::Ordering;
+
 pub fn run(input: &str) -> u32 {
     let deps = PageDependencies::load_from_input(input);
     input
         .lines()
         .filter_map(PageUpdate::parse)
         .filter(|update| update.is_ok(&deps))
-        .map(|update| update.get_middle_page().0)
+        .map(|update| update.get_middle_page())
         .map(u32::from)
         .sum()
 }
 
-struct PageUpdate(Vec<Page>);
+pub struct PageUpdate(Vec<Page>);
 
 impl PageUpdate {
-    fn parse(line: &str) -> Option<PageUpdate> {
+    pub fn parse(line: &str) -> Option<PageUpdate> {
         let pages: Vec<_> = line.split(',').filter_map(Page::parse).collect();
         if pages.is_empty() {
             None
@@ -21,15 +23,19 @@ impl PageUpdate {
             Some(PageUpdate(pages))
         }
     }
-}
 
-impl PageUpdate {
-    fn is_ok(&self, rules: &PageDependencies) -> bool {
+    pub fn into_sorted(self, rules: &PageDependencies) -> Self {
+        let mut v = self.0;
+        v.sort_by(|a, b| rules.compare(*a, *b));
+        Self(v)
+    }
+
+    pub fn is_ok(&self, rules: &PageDependencies) -> bool {
         for i in 0..(self.0.len() - 1) {
             for ii in (i + 1)..self.0.len() {
                 let a = self.0[i];
                 let b = self.0[ii];
-                if rules.a_before_b(b, a) {
+                if rules.compare(a, b) == Ordering::Greater {
                     return false;
                 }
             }
@@ -37,13 +43,19 @@ impl PageUpdate {
         true
     }
 
-    fn get_middle_page(&self) -> &Page {
-        &self.0[self.0.len() / 2]
+    pub fn get_middle_page(&self) -> Page {
+        self.0[self.0.len() / 2]
     }
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-struct Page(u8);
+pub struct Page(u8);
+
+impl From<Page> for u32 {
+    fn from(value: Page) -> Self {
+        value.0.into()
+    }
+}
 
 impl Page {
     fn parse(s: &str) -> Option<Page> {
@@ -52,15 +64,15 @@ impl Page {
 }
 
 #[derive(Debug, Default, Clone)]
-struct PageDependencies(Vec<u128>);
+pub struct PageDependencies(Vec<u128>);
 
 impl PageDependencies {
-    fn load_from_input(input: &str) -> Self {
+    pub fn load_from_input(input: &str) -> Self {
         let rules = input.lines().filter_map(Rule::parse);
         Self::construct_from_rules(rules)
     }
 
-    fn construct_from_rules(rules: impl Iterator<Item = Rule>) -> Self {
+    pub fn construct_from_rules(rules: impl Iterator<Item = Rule>) -> Self {
         let mut dependencies = vec![0; 100];
         for Rule(dep, page_num) in rules {
             let page = usize::from(page_num);
@@ -69,21 +81,30 @@ impl PageDependencies {
         Self(dependencies)
     }
 
-    fn a_before_b(&self, a: Page, b: Page) -> bool {
+    pub fn compare(&self, a: Page, b: Page) -> Ordering {
         let a = usize::from(a.0);
         let b = usize::from(b.0);
 
+        let a_deps = self.0[a];
         let b_deps = self.0[b];
 
-        (b_deps >> a) & 1 != 0
+        let a_before_b = (b_deps >> a) & 1 == 1;
+        let b_before_a = (a_deps >> b) & 1 == 1;
+
+        match (a_before_b, b_before_a) {
+            (true, true) => unreachable!(),
+            (true, false) => Ordering::Less,
+            (false, true) => Ordering::Greater,
+            (false, false) => Ordering::Equal,
+        }
     }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-struct Rule(u8, u8);
+pub struct Rule(u8, u8);
 
 impl Rule {
-    fn parse(line: &str) -> Option<Self> {
+    pub fn parse(line: &str) -> Option<Self> {
         let (a, b) = line.split_once('|')?;
         let a = a.parse().ok()?;
         let b = b.parse().ok()?;
