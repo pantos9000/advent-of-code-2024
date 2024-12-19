@@ -1,4 +1,5 @@
 mod part1;
+mod plane;
 // mod part2;
 
 pub fn read_input() -> String {
@@ -19,9 +20,8 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_part1() {
         let input = read_input();
-        assert_eq!(4766, part1::run(&input));
+        assert_eq!(4826, part1::run(&input));
     }
 }
