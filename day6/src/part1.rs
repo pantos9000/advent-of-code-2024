@@ -1,13 +1,15 @@
 #![allow(unused)]
 
+use std::collections::HashMap;
+
 use crate::plane::*;
 
 pub fn run(input: &str) -> usize {
-    let mut plane: Plane<Spot> = Plane::parse(input);
+    let plane: Plane<Spot> = Plane::parse(input);
     let mut guard = Guard::from_plane(&plane).unwrap();
     let mut num = 0;
     loop {
-        if guard.poop(&mut plane).is_ok() {
+        if guard.poop(&plane).is_ok() {
             num += 1;
         }
         if guard.walk(&plane).is_err() {
@@ -21,7 +23,6 @@ pub fn run(input: &str) -> usize {
 pub enum Spot {
     Obstacle,
     Free,
-    Pooped,
     Start(Direction),
 }
 
@@ -44,15 +45,21 @@ impl Spot {
         match self {
             Spot::Obstacle => true,
             Spot::Free => false,
-            Spot::Pooped => false,
             Spot::Start(_) => false,
         }
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PoopError {
+    DifferentDirection,
+    SameDirection,
+}
+
 pub struct Guard {
     position: Coords,
     direction: Direction,
+    pooped: HashMap<Coords, Direction>,
 }
 
 impl Guard {
@@ -66,21 +73,23 @@ impl Guard {
             return Some(Self {
                 position,
                 direction,
+                pooped: HashMap::new(),
             });
         }
         None
     }
 
-    pub fn poop(&self, plane: &mut Plane<Spot>) -> Result<(), ()> {
-        let spot = plane.get_mut(self.position).unwrap();
-        let result = match spot {
-            Spot::Obstacle => unreachable!(),
-            Spot::Free => Ok(()),
-            Spot::Start(_) => Ok(()),
-            Spot::Pooped => Err(()),
-        };
-        *spot = Spot::Pooped;
-        result
+    /// returns Ok if spot was free, else an error with info if the direction was faced before
+    pub fn poop(&mut self, plane: &Plane<Spot>) -> Result<(), PoopError> {
+        if let Some(direction) = self.pooped.get(&self.position) {
+            if *direction == self.direction {
+                return Err(PoopError::SameDirection);
+            }
+            return Err(PoopError::DifferentDirection);
+        }
+
+        self.pooped.insert(self.position, self.direction);
+        Ok(())
     }
 
     fn turn_right(&mut self) {
@@ -101,6 +110,14 @@ impl Guard {
             self.position = next_pos;
             Ok(())
         }
+    }
+
+    pub fn iter_pooped(&self) -> impl Iterator<Item = (Coords, Direction)> + use<'_> {
+        self.pooped.iter().map(|(c, d)| (*c, *d))
+    }
+
+    pub fn into_iter_pooped(self) -> impl Iterator<Item = (Coords, Direction)> {
+        self.pooped.into_iter()
     }
 }
 
