@@ -1,6 +1,13 @@
 #![allow(dead_code)]
 
+#[derive(Debug)]
 pub struct Plane<T>(Vec<Vec<T>>);
+
+impl<T: Clone> Clone for Plane<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
 
 impl<T> Plane<T>
 where
@@ -105,7 +112,7 @@ impl Coords {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Up,
     UpRight,
