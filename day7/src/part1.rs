@@ -34,6 +34,29 @@ impl Equation {
         &self.numbers
     }
 
+    pub fn can_be_true_part2(&self) -> bool {
+        let mut results = vec![0];
+        for number in &self.numbers {
+            let mut new_results = Vec::new();
+            for result in results {
+                let plus = result + number;
+                let mult = result * number;
+                let conc = concat(result, *number);
+                if plus <= self.result {
+                    new_results.push(plus);
+                }
+                if mult <= self.result {
+                    new_results.push(mult);
+                }
+                if conc <= self.result {
+                    new_results.push(conc);
+                }
+            }
+            results = new_results;
+        }
+        results.contains(&self.result)
+    }
+
     pub fn can_be_true(&self) -> bool {
         let mut results = vec![0];
         for number in &self.numbers {
@@ -54,9 +77,18 @@ impl Equation {
     }
 }
 
+fn concat(a: usize, b: usize) -> usize {
+    a * 10_usize.pow(b.ilog10() + 1) + b
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_concat() {
+        assert_eq!(concat(12, 34), 1234);
+    }
 
     #[test]
     fn test_equation_parse() {
