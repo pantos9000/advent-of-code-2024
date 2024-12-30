@@ -27,7 +27,7 @@ pub fn run(input: &str) -> usize {
         .count()
 }
 
-fn combinations<I>(coords: I) -> impl Iterator<Item = (Coords, Coords)>
+pub fn combinations<I>(coords: I) -> impl Iterator<Item = (Coords, Coords)>
 where
     I: Iterator<Item = Coords> + Clone,
 {
@@ -38,7 +38,7 @@ where
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Spot {
+pub enum Spot {
     Antenna(char),
     Empty,
 }
